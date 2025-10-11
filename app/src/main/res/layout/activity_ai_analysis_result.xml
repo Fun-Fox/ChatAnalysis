@@ -30,11 +30,34 @@
 
         <Button
             android:id="@+id/btn_export"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="122dp"
+            android:layout_height="match_parent"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="导出(Markdown格式)" />
+
+    </LinearLayout>
+
+    <!-- 加载指示器 -->
+    <LinearLayout
+        android:id="@+id/loading_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI正在分析中，请稍候..."
+            android:textSize="16sp" />
 
     </LinearLayout>
 
@@ -47,8 +70,9 @@
         android:textStyle="bold" />
 
     <ScrollView
+        android:id="@+id/sv_reasoning_content"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="111dp"
         android:layout_marginBottom="16dp"
         android:background="#f0f0f0"
         android:padding="12dp">
@@ -71,6 +95,7 @@
         android:textStyle="bold" />
 
     <ScrollView
+        android:id="@+id/sv_final_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

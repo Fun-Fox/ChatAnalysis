@@ -7,6 +7,8 @@ import android.util.Log
 import android.widget.TextView
 import android.widget.Button
 import android.widget.Toast
+import android.widget.ScrollView
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,6 +34,9 @@ class AiAnalysisResultActivity : ComponentActivity() {
     private lateinit var tvFinalContent: TextView
     private lateinit var btnRegenerate: Button
     private lateinit var btnExport: Button
+    private lateinit var svReasoningContent: ScrollView
+    private lateinit var svFinalContent: ScrollView
+    private lateinit var loadingLayout: LinearLayout
     
     private lateinit var tvCollectTime: String
     private lateinit var tvMessages: String
@@ -67,6 +72,9 @@ class AiAnalysisResultActivity : ComponentActivity() {
         tvGroupName = findViewById(R.id.tv_group_name)
         tvReasoningContent = findViewById(R.id.tv_reasoning_content)
         tvFinalContent = findViewById(R.id.tv_final_content)
+        svReasoningContent = findViewById(R.id.sv_reasoning_content)
+        svFinalContent = findViewById(R.id.sv_final_content)
+        loadingLayout = findViewById(R.id.loading_layout)
         btnRegenerate = findViewById(R.id.btn_regenerate)
         btnExport = findViewById(R.id.btn_export)
         
@@ -174,6 +182,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
         runOnUiThread {
             tvReasoningContent.text = ""
             tvFinalContent.text = ""
+            // 显示加载指示器
+            loadingLayout.visibility = LinearLayout.VISIBLE
         }
         
         // 创建事件监听器
@@ -194,6 +204,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
                     saveAnalysisResultToDatabase()
                     runOnUiThread {
                         Toast.makeText(this@AiAnalysisResultActivity, "分析完成", Toast.LENGTH_SHORT).show()
+                        // 隐藏加载指示器
+                        loadingLayout.visibility = LinearLayout.GONE
                     }
                     return
                 }
@@ -209,6 +221,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
                             accumulatedReasoning += reasoningContent
                             runOnUiThread {
                                 tvReasoningContent.text = accumulatedReasoning
+                                // 自动滚动到推理内容底部
+                                scrollToBottom(svReasoningContent)
                             }
                         } else if (delta.has("content")) {
                             val content = delta.getString("content")
@@ -216,6 +230,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
                             runOnUiThread {
                                 // 检查内容是否为Markdown格式
                                 tvFinalContent.text = accumulatedFinal
+                                // 自动滚动到最终结果底部
+                                scrollToBottom(svFinalContent)
                             }
                         }
                     }
@@ -232,6 +248,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 
                 runOnUiThread {
                     Toast.makeText(this@AiAnalysisResultActivity, "分析失败: ${t?.message ?: "未知错误"}", Toast.LENGTH_LONG).show()
+                    // 隐藏加载指示器
+                    loadingLayout.visibility = LinearLayout.GONE
                 }
             }
 
@@ -239,11 +257,21 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 Log.d("AI_API", "SSE连接正常关闭")
                 // 保存结果到数据库
                 saveAnalysisResultToDatabase()
+                runOnUiThread {
+                    // 隐藏加载指示器
+                    loadingLayout.visibility = LinearLayout.GONE
+                }
             }
         }
 
         // 创建并启动事件源
         eventSource = factory.newEventSource(request, sseListener)
+    }
+
+    private fun scrollToBottom(scrollView: ScrollView) {
+        scrollView.post {
+            scrollView.fullScroll(ScrollView.FOCUS_DOWN)
+        }
     }
 
     private fun regenerateAnalysis() {
