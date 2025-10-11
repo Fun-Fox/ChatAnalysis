@@ -83,7 +83,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
         }
         
         btnExport.setOnClickListener {
-            exportAnalysisResult()
+            showExportOptions()
         }
     }
 
@@ -247,7 +247,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 }
                 
                 runOnUiThread {
-                    Toast.makeText(this@AiAnalysisResultActivity, "分析失败,请尝试重试: ${t?.message ?: "未知错误"}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AiAnalysisResultActivity, "分析失败: ${t?.message ?: "未知错误"}", Toast.LENGTH_LONG).show()
                     // 隐藏加载指示器
                     loadingLayout.visibility = LinearLayout.GONE
                 }
@@ -293,7 +293,21 @@ class AiAnalysisResultActivity : ComponentActivity() {
         }
     }
 
-    private fun exportAnalysisResult() {
+    private fun showExportOptions() {
+        // 创建选项对话框让用户选择导出格式
+        val options = arrayOf("导出为Markdown", "导出为HTML")
+        android.app.AlertDialog.Builder(this)
+            .setTitle("选择导出格式")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> exportAsMarkdown()
+                    1 -> exportAsHtml()
+                }
+            }
+            .show()
+    }
+
+    private fun exportAsMarkdown() {
         val fileName = "AI分析结果_${groupName}_${System.currentTimeMillis()}.md"
         
         // 使用存储访问框架让用户选择导出位置
@@ -306,6 +320,19 @@ class AiAnalysisResultActivity : ComponentActivity() {
         exportFileLauncher.launch(intent)
     }
     
+    private fun exportAsHtml() {
+        val fileName = "AI分析结果_${groupName}_${System.currentTimeMillis()}.html"
+        
+        // 使用存储访问框架让用户选择导出位置
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/html"
+            putExtra(Intent.EXTRA_TITLE, fileName)
+        }
+        
+        exportHtmlFileLauncher.launch(intent)
+    }
+
     private val exportFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.also { uri ->
@@ -327,6 +354,136 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 }
             }
         }
+    }
+    
+    private val exportHtmlFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.also { uri ->
+                try {
+                    // 将Markdown转换为HTML
+                    val markdownContent = accumulatedFinal.trimIndent()
+                    val htmlContent = convertMarkdownToHtml(markdownContent)
+                    
+                    contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(htmlContent.toByteArray())
+                    }
+                    
+                    runOnUiThread {
+                        Toast.makeText(this, "HTML导出成功", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("EXPORT", "HTML导出失败", e)
+                    runOnUiThread {
+                        Toast.makeText(this, "HTML导出失败: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun convertMarkdownToHtml(markdown: String): String {
+        // 简单的Markdown到HTML转换实现
+        val html = StringBuilder()
+        html.append("<!DOCTYPE html>\n")
+        html.append("<html>\n<head>\n")
+        html.append("<meta charset=\"UTF-8\">\n")
+        html.append("<title>AI分析结果</title>\n")
+        html.append("<style>\n")
+        html.append("body { font-family: Arial, sans-serif; margin: 20px; }\n")
+        html.append("h1, h2, h3 { color: #333; }\n")
+        html.append("code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }\n")
+        html.append("pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }\n")
+        html.append("blockquote { border-left: 4px solid #ddd; padding-left: 10px; margin-left: 0; color: #666; }\n")
+        html.append("table { border-collapse: collapse; width: 100%; }\n")
+        html.append("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n")
+        html.append("th { background-color: #f2f2f2; }\n")
+        html.append("</style>\n")
+        html.append("</head>\n<body>\n")
+        
+        // 简单的Markdown转换逻辑
+        val lines = markdown.lines()
+        var inCodeBlock = false
+        var inList = false
+        
+        for (line in lines) {
+            var processedLine = line
+            
+            // 处理代码块
+            if (processedLine.startsWith("```")) {
+                if (!inCodeBlock) {
+                    html.append("<pre><code>")
+                    inCodeBlock = true
+                } else {
+                    html.append("</code></pre>\n")
+                    inCodeBlock = false
+                }
+                continue
+            }
+            
+            if (inCodeBlock) {
+                html.append(processedLine).append("\n")
+                continue
+            }
+            
+            // 处理标题
+            if (processedLine.startsWith("# ")) {
+                html.append("<h1>").append(processedLine.substring(2)).append("</h1>\n")
+                continue
+            } else if (processedLine.startsWith("## ")) {
+                html.append("<h2>").append(processedLine.substring(3)).append("</h2>\n")
+                continue
+            } else if (processedLine.startsWith("### ")) {
+                html.append("<h3>").append(processedLine.substring(4)).append("</h3>\n")
+                continue
+            }
+            
+            // 处理无序列表
+            if (processedLine.startsWith("- ") || processedLine.startsWith("* ")) {
+                if (!inList) {
+                    html.append("<ul>\n")
+                    inList = true
+                }
+                html.append("<li>").append(processedLine.substring(2)).append("</li>\n")
+                continue
+            } else {
+                if (inList) {
+                    html.append("</ul>\n")
+                    inList = false
+                }
+            }
+            
+            // 处理引用
+            if (processedLine.startsWith("> ")) {
+                html.append("<blockquote>").append(processedLine.substring(2)).append("</blockquote>\n")
+                continue
+            }
+            
+            // 处理粗体
+            processedLine = processedLine.replace(Regex("\\*\\*(.*?)\\*\\*"), "<strong>$1</strong>")
+            
+            // 处理斜体
+            processedLine = processedLine.replace(Regex("\\*(.*?)\\*"), "<em>$1</em>")
+            
+            // 处理行内代码
+            processedLine = processedLine.replace(Regex("`([^`]+)`"), "<code>$1</code>")
+            
+            // 如果是空行
+            if (processedLine.isEmpty()) {
+                html.append("<br>\n")
+                continue
+            }
+            
+            // 普通段落
+            html.append("<p>").append(processedLine).append("</p>\n")
+        }
+        
+        // 关闭可能未关闭的标签
+        if (inList) {
+            html.append("</ul>\n")
+        }
+        
+        html.append("</body>\n</html>")
+        return html.toString()
     }
     
     private fun getApiToken(): String {
