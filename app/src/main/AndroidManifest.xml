@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AutoXHS"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AutoXHS">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <activity
+            android:name=".ChatRecordsActivity"
+            android:exported="false"
+            android:label="聊天记录"
+            android:theme="@style/Theme.AutoXHS" />
+            
+        <activity
+            android:name=".ChatMessagesActivity"
+            android:exported="false"
+            android:label="聊天详情"
+            android:theme="@style/Theme.AutoXHS" />
+
+        <activity
+            android:name=".AiAnalysisResultActivity"
+            android:exported="false"
+            android:label="AI分析记录"
+            android:theme="@style/Theme.AutoXHS" />
+        <!-- 或者使用下面的服务可以解决一些应用混淆节点的问题，比如微信8.0.51以上版本获取的节点元素错乱问题 -->
+        <!-- ⚠️ 选其一 -->
+        <service
+            android:name="com.google.android.accessibility.selecttospeak.SelectToSpeakService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <!--android:priority="10000" 可提高服务在设置中的权重，排在前面     -->
+            <intent-filter android:priority="10000">
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/assists_service" />
+        </service>
+
+        <!-- 添加代码 ↑-->
+    </application>
+
+</manifest>

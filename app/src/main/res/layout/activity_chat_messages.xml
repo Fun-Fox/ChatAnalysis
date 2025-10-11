@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@android:color/holo_blue_dark">
+
+        <TextView
+            android:id="@+id/tv_group_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="群聊名称"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btn_ai_analyze"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI解析"
+            android:layout_marginTop="18dp"
+            android:textColor="@android:color/white"
+            android:background="@android:color/transparent"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- 收集时间 -->
+    <TextView
+        android:id="@+id/tv_collect_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="收集时间"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:padding="16dp" />
+
+    <!-- 内容区域 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_messages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="聊天消息"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp"
+                android:textIsSelectable="true"
+                android:enabled="true"
+                android:longClickable="true"
+                android:padding="16dp" />
+
+            <TextView
+                android:id="@+id/tv_ai_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AI分析结果将显示在这里"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp"
+                android:padding="16dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

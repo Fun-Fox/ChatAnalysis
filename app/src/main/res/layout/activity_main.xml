@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="小红书群聊舆情分析工具"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/btn_open_accessibility"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="第一步：开启无障碍服务"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="第二步：填写群聊名称（多个使用空格间隔 且 不需要完整群名只需要部分）"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:textColor="@android:color/black" />
+
+    <EditText
+        android:id="@+id/et_group_names"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="例如: 做点什么呢？ 朋友群 工作群"
+        android:layout_marginBottom="16dp"
+        android:minLines="3"
+        android:gravity="top|start"
+        android:textColor="@android:color/black"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="第三步：填写采集时间间隔（天）"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:textColor="@android:color/black" />
+
+    <EditText
+        android:id="@+id/et_days_interval"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="默认14天"
+        android:inputType="number"
+        android:layout_marginBottom="16dp"
+        android:textColor="@android:color/black"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="第四步：保存设置"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btn_execute"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="第五步：启动"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_view_records"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="查看采集的群聊记录"/>
+
+</LinearLayout>
