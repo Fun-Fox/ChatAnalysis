@@ -247,7 +247,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 }
                 
                 runOnUiThread {
-                    Toast.makeText(this@AiAnalysisResultActivity, "分析失败: ${t?.message ?: "未知错误"}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AiAnalysisResultActivity, "分析失败,请尝试重试: ${t?.message ?: "未知错误"}", Toast.LENGTH_LONG).show()
                     // 隐藏加载指示器
                     loadingLayout.visibility = LinearLayout.GONE
                 }
