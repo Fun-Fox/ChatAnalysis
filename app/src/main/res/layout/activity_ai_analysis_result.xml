@@ -21,6 +21,14 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/btn_select_prompt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="选择分析模板" />
+
+        <Button
             android:id="@+id/btn_regenerate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -30,11 +38,89 @@
 
         <Button
             android:id="@+id/btn_export"
-            android:layout_width="122dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="导出(Markdown格式)" />
+            android:text="导出" />
+
+    </LinearLayout>
+
+    <!-- 提示词选择区域 -->
+    <LinearLayout
+        android:id="@+id/prompt_selection_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"
+        android:background="#f0f0f0"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="请选择分析模板："
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="200dp">
+
+            <RadioGroup
+                android:id="@+id/rg_prompts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/rb_prompt1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="群聊舆情分析报告（热点话题、话题热度榜、有趣对话）"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rb_prompt2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="用户行为分析（用户需求、商业价值挖掘）" />
+
+                <RadioButton
+                    android:id="@+id/rb_prompt3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="玩具产品开发机会分析" />
+
+                <RadioButton
+                    android:id="@+id/rb_prompt4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="玩具核心痛点分析" />
+
+                <RadioButton
+                    android:id="@+id/rb_prompt5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="竞品讨论分析" />
+
+                <RadioButton
+                    android:id="@+id/rb_prompt6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="综合市场分析报告（六大维度深度分析）" />
+
+            </RadioGroup>
+
+        </ScrollView>
+
+        <Button
+            android:id="@+id/btn_confirm_prompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="确认并开始分析"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
 

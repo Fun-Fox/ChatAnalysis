@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.Toast
 import android.widget.ScrollView
 import android.widget.LinearLayout
+import android.widget.RadioGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,11 +33,15 @@ class AiAnalysisResultActivity : ComponentActivity() {
     private lateinit var tvGroupName: TextView
     private lateinit var tvReasoningContent: TextView
     private lateinit var tvFinalContent: TextView
+    private lateinit var btnSelectPrompt: Button
     private lateinit var btnRegenerate: Button
     private lateinit var btnExport: Button
     private lateinit var svReasoningContent: ScrollView
     private lateinit var svFinalContent: ScrollView
     private lateinit var loadingLayout: LinearLayout
+    private lateinit var promptSelectionLayout: LinearLayout
+    private lateinit var rgPrompts: RadioGroup
+    private lateinit var btnConfirmPrompt: Button
     
     private lateinit var tvCollectTime: String
     private lateinit var tvMessages: String
@@ -46,6 +51,8 @@ class AiAnalysisResultActivity : ComponentActivity() {
     
     private var chatRecordId: Long = -1
     private var groupName: String = ""
+    private var selectedPrompt: String = ""
+    private var selectedPromptName: String = ""
 
     private val client = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -75,8 +82,16 @@ class AiAnalysisResultActivity : ComponentActivity() {
         svReasoningContent = findViewById(R.id.sv_reasoning_content)
         svFinalContent = findViewById(R.id.sv_final_content)
         loadingLayout = findViewById(R.id.loading_layout)
+        promptSelectionLayout = findViewById(R.id.prompt_selection_layout)
+        rgPrompts = findViewById(R.id.rg_prompts)
+        btnSelectPrompt = findViewById(R.id.btn_select_prompt)
         btnRegenerate = findViewById(R.id.btn_regenerate)
         btnExport = findViewById(R.id.btn_export)
+        btnConfirmPrompt = findViewById(R.id.btn_confirm_prompt)
+        
+        btnSelectPrompt.setOnClickListener {
+            showPromptSelection()
+        }
         
         btnRegenerate.setOnClickListener {
             regenerateAnalysis()
@@ -84,6 +99,10 @@ class AiAnalysisResultActivity : ComponentActivity() {
         
         btnExport.setOnClickListener {
             showExportOptions()
+        }
+        
+        btnConfirmPrompt.setOnClickListener {
+            confirmPromptAndAnalyze()
         }
     }
 
@@ -112,13 +131,102 @@ class AiAnalysisResultActivity : ComponentActivity() {
                 accumulatedFinal = record.finalContent ?: ""
                 Log.d("AI_API", "从数据库加载分析结果")
             } else {
-                // 数据库中没有结果，发起网络请求
-                setupStreamAnalysis()
+                // 数据库中没有结果，显示提示词选择界面
+                showPromptSelection()
             }
         } else {
-            // 没有chatRecordId，直接发起网络请求
-            setupStreamAnalysis()
+            // 没有chatRecordId，显示提示词选择界面
+            showPromptSelection()
         }
+    }
+
+    private fun showPromptSelection() {
+        promptSelectionLayout.visibility = LinearLayout.VISIBLE
+        loadingLayout.visibility = LinearLayout.GONE
+    }
+
+    private fun confirmPromptAndAnalyze() {
+        // 获取选中的提示词
+        when (rgPrompts.checkedRadioButtonId) {
+            R.id.rb_prompt1 -> {
+                selectedPrompt = "你是一个专业的群聊分析师，请分析群聊内容并输出结构化报告(如：热点话题并统计提及次数、话题热度榜、有趣的对话及金句、话题词云)，并深度挖掘用户需求及商业价值。"
+                selectedPromptName = "群聊舆情分析报告"
+            }
+            R.id.rb_prompt2 -> {
+                selectedPrompt = "你是一个用户行为分析师，请分析群聊内容，深度挖掘用户行为模式、用户需求和潜在商业价值，输出用户画像和商业建议。"
+                selectedPromptName = "用户行为分析"
+            }
+            R.id.rb_prompt3 -> {
+                selectedPrompt = "你是一名玩具产品经理。请分析以下聊天记录，找出其中暗示的3个新产品开发机会或现有产品优化方向。请说明理由并引用用户原话。"
+                selectedPromptName = "玩具产品开发机会分析"
+            }
+            R.id.rb_prompt4 -> {
+                selectedPrompt = "你是一名玩具市场分析师。请分析以下聊天记录，找出用户提到的关于玩具的至少5个核心痛点或抱怨，并引用匿名化的用户原话作为例子。"
+                selectedPromptName = "玩具核心痛点分析"
+            }
+            R.id.rb_prompt5 -> {
+                selectedPrompt = "你是一名市场情报分析师。请从以下聊天记录中，总结所有关于竞品（非我方品牌）的讨论。列出被提及的竞品品牌，以及用户对它们的正面和负面评价。"
+                selectedPromptName = "竞品讨论分析"
+            }
+            R.id.rb_prompt6 -> {
+                selectedPrompt = """
+
+                    ## 1. 角色设定
+                    你是一名资深的玩具行业市场分析专家和数据科学家。你的任务是分析以下提供的社群聊天记录，为一家玩具公司提取核心内容、洞察用户痛点、发现潜在商机，并生成一份结构化、逻辑清晰的分析报告。请严格基于提供的文本内容进行分析，避免无根据的猜测。
+
+                    ## 2. 分析维度与要求
+                    请按照以下六个维度进行分析，并以报告的形式呈现：
+
+                    ### 第一部分：群聊热点与核心议题分析
+                    - **高频关键词提炼：** 提取出现频率最高的20个关键词（已排除“的、了、哈”等无意义助词），并分为以下几类：
+                        - **玩具品类/IP：** (例如: 积木, 遥控车, 奥特曼)
+                        - **品牌名：** (包括我方品牌和竞品品牌)
+                        - **用户行为/情感：** (例如: 推荐, 求助, 坏了, 喜欢, 太贵)
+                        - **场景/节日：** (例如: 生日, 旅行, 过年)
+                    - **核心讨论话题聚类：** 总结出群内讨论最集中的3-5个核心话题，并对每个话题进行简要描述。例如：产品推荐求助、育儿经验交流、产品使用问题反馈等。
+
+                    ### 第二部分：用户需求与痛点深度挖掘
+                    - **识别核心痛点：** 找出用户在使用玩具或购买决策中普遍抱怨或感到困扰的问题点。请列出至少3个主要痛点，并引用1-2句匿名化的用户原话作为证据。
+                    - **识别未满足的需求：** 找出用户表达出的“希望有…”、“要是…就好了”这类期待和愿望。请列出至少3个未被满足的需求，并引用原话佐证。
+
+                    ### 第三部分：商业机会与市场洞察
+                    - **产品创新/优化建议：** 基于第二部分的痛点和需求，提出具体的产品开发或改进建议。
+                    - **竞品分析：** 总结用户对竞品的讨论。提及了哪些竞品？用户赞扬了竞品的哪些优点？吐槽了哪些缺点？这对我们有什么启发？
+                    - **营销场景机会：** 用户在哪些特定场景下（如节日、旅行、雨天居家）会讨论玩具？这为我们的场景化营销提供了哪些灵感？
+
+                    ### 第四部分：用户画像与关键人物识别
+                    - **核心用户画像(Persona)：** 描述群内最活跃用户的典型特征。他们的孩子大概在什么年龄段？他们最关心什么问题（价格、安全、益智性）？
+                    - **意见领袖(KOC)识别：** 找出哪些用户（用[用户A]等匿名标识符）的发言影响力大、推荐被采纳率高、或者回答问题最积极。描述他们的典型特征。
+
+                    ### 第五部分：购买决策链路分析
+                    - 总结用户从产生兴趣到决定购买（或放弃）的关键影响因素。他们在购买前会咨询什么？什么因素会促使他们下单（如折扣、好评）？什么因素会让他们犹豫（如价格、安装复杂）？
+
+                    ### 第六部分：总结与行动建议
+                    - 对整份报告进行一个高度概括的总结。
+                    - 基于以上所有分析，为玩具公司提出3-5条最优先、最具可操作性的行动建议。
+
+                    ## 3. 输入数据
+                    以下是需要分析的聊天记录：
+                    ---
+                    [请在此处粘贴您已脱敏和整理好的聊天记录]
+                    ---
+
+                    ## 4. 输出要求
+                    请以清晰的Markdown格式生成报告，使用标题、列表和粗体来突出重点，确保报告易于阅读和理解。
+                """.trimIndent()
+                selectedPromptName = "综合市场分析报告"
+            }
+            else -> {
+                selectedPrompt = "你是一个专业的群聊分析师，请分析群聊内容并输出结构化报告(如：热点话题并统计提及次数、话题热度榜、有趣的对话及金句、话题词云)，并深度挖掘用户需求及商业价值。"
+                selectedPromptName = "群聊舆情分析报告"
+            }
+        }
+        
+        // 隐藏提示词选择界面
+        promptSelectionLayout.visibility = LinearLayout.GONE
+        
+        // 开始分析
+        setupStreamAnalysis()
     }
 
     private fun setupStreamAnalysis() {
@@ -138,7 +246,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
             .put("messages", JSONArray().apply {
                 put(JSONObject().apply {
                     put("role", "system")
-                    put("content", "你是一个专业的群聊分析师，请分析群聊内容并输出结构化报告(如：热点话题并统计提及次数、话题热度榜、有趣的对话及金句、话题词云)，并深度挖掘用户需求及商业价值。 ")
+                    put("content", selectedPrompt)
                 })
                 put(JSONObject().apply {
                     put("role", "user")
@@ -283,8 +391,14 @@ class AiAnalysisResultActivity : ComponentActivity() {
             ChatDatabaseManager.updateAiAnalysisResult(chatRecordId, "", "")
         }
         
-        // 重新发起分析
-        setupStreamAnalysis()
+        // 清空显示内容
+        tvReasoningContent.text = ""
+        tvFinalContent.text = ""
+        accumulatedReasoning = ""
+        accumulatedFinal = ""
+        
+        // 显示提示词选择界面
+        showPromptSelection()
     }
 
     private fun saveAnalysisResultToDatabase() {
@@ -308,7 +422,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
     }
 
     private fun exportAsMarkdown() {
-        val fileName = "AI分析结果_${groupName}_${System.currentTimeMillis()}.md"
+        val fileName = "AI分析结果_${groupName}_${selectedPromptName}_${System.currentTimeMillis()}.md"
         
         // 使用存储访问框架让用户选择导出位置
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -321,7 +435,7 @@ class AiAnalysisResultActivity : ComponentActivity() {
     }
     
     private fun exportAsHtml() {
-        val fileName = "AI分析结果_${groupName}_${System.currentTimeMillis()}.html"
+        val fileName = "AI分析结果_${groupName}_${selectedPromptName}_${System.currentTimeMillis()}.html"
         
         // 使用存储访问框架让用户选择导出位置
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
