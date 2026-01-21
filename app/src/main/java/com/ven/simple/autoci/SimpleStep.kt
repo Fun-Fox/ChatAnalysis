@@ -138,96 +138,93 @@ class SimpleStep : StepImpl() {
                     delay(2000)
 
                     // 检查当前是否仍在目标应用界面
-                    try {
-                        val currentPackage = AssistsCore.getPackageName()
-                        "当前包名: $currentPackage".overlayToast()
-                        if (currentPackage != "com.xingin.xhs") {
-                            "检测到已离开小红书应用，当前应用: $currentPackage".overlayToast()
-                            break // 离开循环
-                        }
-                    } catch (e: Exception) {
+                    val currentPackage = AssistsCore.getPackageName()
+                    "当前包名: $currentPackage".overlayToast()
+                    if (currentPackage != "com.xingin.xhs") {
+                        "检测到已离开小红书应用，当前应用: $currentPackage".overlayToast()
+                        break // 离开循环
+                    }
 
-                        // 收集当前屏幕的所有文本
-                        val currentScreenTexts = mutableListOf<String>()
-                        var hasValidChatsInThisScreen = false
-                        var hasRecentChatInThisScreen = false
+                    // 收集当前屏幕的所有文本
+                    val currentScreenTexts = mutableListOf<String>()
+                    var hasValidChatsInThisScreen = false
+                    var hasRecentChatInThisScreen = false
 
-                        val allNodesForScreen = AssistsCore.getAllNodes()
-                        var validTextCount = 0 // 记录已找到的有效文本数量
+                    val allNodesForScreen = AssistsCore.getAllNodes()
+                    var validTextCount = 0 // 记录已找到的有效文本数量
 
-                        // 遍历所有节点，但只处理前4个满足条件的文本
-                        for (i in 0 until allNodesForScreen.size) {
-                            val node = allNodesForScreen[i]
-                            if (node.txt().isNotEmpty() && node.isTextView()) {
-                                validTextCount++
-                                // 只处理第4个有效的文本节点（validTextCount == 4）
-                                if (validTextCount >= 5) {
-                                    val text = node.txt()
-                                    currentScreenTexts.add(text)
+                    // 遍历所有节点，但只处理前4个满足条件的文本
+                    for (i in 0 until allNodesForScreen.size) {
+                        val node = allNodesForScreen[i]
+                        if (node.txt().isNotEmpty() && node.isTextView()) {
+                            validTextCount++
+                            // 只处理第4个有效的文本节点（validTextCount == 4）
+                            if (validTextCount >= 5) {
+                                val text = node.txt()
+                                currentScreenTexts.add(text)
 
-                                    // 检查是否有在指定时间间隔内的聊天
-                                    if (isBeyondTimeInterval(
-                                            text,
-                                            currentTime,
-                                            timeIntervalInMillis
-                                        )
-                                    ) {
-                                        hasRecentChatInThisScreen = true
-                                    }
-                                    hasValidChatsInThisScreen = true
+                                // 检查是否有在指定时间间隔内的聊天
+                                if (isBeyondTimeInterval(
+                                        text,
+                                        currentTime,
+                                        timeIntervalInMillis
+                                    )
+                                ) {
+                                    hasRecentChatInThisScreen = true
                                 }
+                                hasValidChatsInThisScreen = true
                             }
                         }
+                    }
 
 
-                        // 判断是否到顶：
-                        // 1. 当前屏与上一屏的文本完全一致
-                        // 2. 当前屏存在在指定时间间隔内的聊天记录
-                        if (currentScreenTexts.isNotEmpty() &&
-                            lastScreenTexts.isNotEmpty() &&
-                            currentScreenTexts == lastScreenTexts
-                        ) {
-                            isReachedTop = true
-                            "已到达顶部，当前屏与上一屏内容完全一致".overlayToast()
-                            delay(2000)
-                        } else if (hasRecentChatInThisScreen) {
-                            // 如果当前屏有在指定时间间隔内的聊天，则认为已到顶
-                            isReachedTop = true
-                            "已到达顶部，当前屏包含${daysInterval}天内的聊天记录".overlayToast()
-                            allCollectedTexts.addAll(0, currentScreenTexts)
-                            delay(2000)
+                    // 判断是否到顶：
+                    // 1. 当前屏与上一屏的文本完全一致
+                    // 2. 当前屏存在在指定时间间隔内的聊天记录
+                    if (currentScreenTexts.isNotEmpty() &&
+                        lastScreenTexts.isNotEmpty() &&
+                        currentScreenTexts == lastScreenTexts
+                    ) {
+                        isReachedTop = true
+                        "已到达顶部，当前屏与上一屏内容完全一致".overlayToast()
+                        delay(2000)
+                    } else if (hasRecentChatInThisScreen) {
+                        // 如果当前屏有在指定时间间隔内的聊天，则认为已到顶
+                        isReachedTop = true
+                        "已到达顶部，当前屏包含${daysInterval}天内的聊天记录".overlayToast()
+                        allCollectedTexts.addAll(0, currentScreenTexts)
+                        delay(2000)
 
+                    } else {
+
+                        // 将当前屏幕文本添加到总集合中
+                        allCollectedTexts.addAll(0, currentScreenTexts)
+
+                        lastScreenTexts.clear()
+                        lastScreenTexts.addAll(currentScreenTexts)
+
+                        // 如果这一屏有有效聊天记录，继续滚动
+                        if (hasValidChatsInThisScreen) {
+                            // 执行向上滚动
+                            val appWidth = AssistsCore.getAppWidthInScreen()
+                            val appHeight = AssistsCore.getAppHeightInScreen()
+
+                            val startX = appWidth * 0.5f
+                            val startY = appHeight * 0.2f // 从下往上滑
+
+                            val endX = appWidth * 0.5f
+                            val endY = appHeight * 0.8f   // 滑动到上方
+
+                            val startLocation = floatArrayOf(startX, startY)
+                            val endLocation = floatArrayOf(endX, endY)
+                            val duration = 1000L
+
+                            gesture(startLocation, endLocation, 0L, duration)
+                            "继续滚动采集更多聊天记录".overlayToast()
                         } else {
-
-                            // 将当前屏幕文本添加到总集合中
-                            allCollectedTexts.addAll(0, currentScreenTexts)
-
-                            lastScreenTexts.clear()
-                            lastScreenTexts.addAll(currentScreenTexts)
-
-                            // 如果这一屏有有效聊天记录，继续滚动
-                            if (hasValidChatsInThisScreen) {
-                                // 执行向上滚动
-                                val appWidth = AssistsCore.getAppWidthInScreen()
-                                val appHeight = AssistsCore.getAppHeightInScreen()
-
-                                val startX = appWidth * 0.5f
-                                val startY = appHeight * 0.2f // 从下往上滑
-
-                                val endX = appWidth * 0.5f
-                                val endY = appHeight * 0.8f   // 滑动到上方
-
-                                val startLocation = floatArrayOf(startX, startY)
-                                val endLocation = floatArrayOf(endX, endY)
-                                val duration = 1000L
-
-                                gesture(startLocation, endLocation, 0L, duration)
-                                "继续滚动采集更多聊天记录".overlayToast()
-                            } else {
-                                // 如果这一屏没有找到有效的聊天记录，也停止滚动
-                                isReachedTop = true
-                                "未找到有效聊天记录，停止滚动".overlayToast()
-                            }
+                            // 如果这一屏没有找到有效的聊天记录，也停止滚动
+                            isReachedTop = true
+                            "未找到有效聊天记录，停止滚动".overlayToast()
                         }
                     }
                 }
